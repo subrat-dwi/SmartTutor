@@ -21,7 +21,7 @@ export default function TopicInput({ onGenerate }: { onGenerate: (topic: string)
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
+    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg p-6 space-y-4 border border-gray-300 dark:border-gray-700">
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">
           What would you like to learn today?
@@ -31,7 +31,7 @@ export default function TopicInput({ onGenerate }: { onGenerate: (topic: string)
           onChange={(e) => setTopic(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="e.g., Binary Trees, Photosynthesis, Machine Learning..."
-          className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors text-lg"
+          className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:border-indigo-500 focus:outline-none transition-colors text-lg"
           disabled={isLoading}
         />
       </div>

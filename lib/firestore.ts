@@ -65,9 +65,11 @@ export const saveStudySession = async (session: Omit<StudySession, 'id'>) => {
 
 export const getUserStudySessions = async (userId: string) => {
   const sessionsRef = collection(db, 'studySessions');
-  const q = query(sessionsRef, where('userId', '==', userId), orderBy('createdAt', 'desc'));
+  const q = query(sessionsRef, where('userId', '==', userId));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const sessions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  // Sort in JavaScript instead of Firestore
+  return sessions.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
 };
 
 // Quiz Result Functions
@@ -86,9 +88,11 @@ export const saveQuizResult = async (result: Omit<QuizResult, 'id'>) => {
 
 export const getUserQuizResults = async (userId: string) => {
   const resultsRef = collection(db, 'quizResults');
-  const q = query(resultsRef, where('userId', '==', userId), orderBy('completedAt', 'desc'));
+  const q = query(resultsRef, where('userId', '==', userId));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const results = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  // Sort in JavaScript instead of Firestore
+  return results.sort((a, b) => b.completedAt.seconds - a.completedAt.seconds);
 };
 
 // Update User Statistics

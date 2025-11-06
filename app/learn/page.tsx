@@ -81,7 +81,7 @@ export default function LearnPage() {
 
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       <Sidebar />
       
       <div className="flex-1 overflow-auto">
@@ -100,7 +100,7 @@ export default function LearnPage() {
 
             {/* Loading State */}
             {loading && (
-              <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg p-8 text-center">
                 <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto mb-4"></div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   Generating content for "{currentTopic}"...
@@ -113,7 +113,7 @@ export default function LearnPage() {
             {!loading && (explanation || quiz) && (
               <div className="space-y-8">
                 {/* Topic Header */}
-                <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-indigo-500">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-indigo-500">
                   <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                     🎯 Learning: <span className="text-indigo-600">{currentTopic}</span>
                   </h2>
@@ -137,7 +137,7 @@ export default function LearnPage() {
 
             {/* Empty State */}
             {!loading && !explanation && !quiz && (
-              <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center">
                 <div className="text-6xl mb-4">🚀</div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">
                   Ready to learn something new?

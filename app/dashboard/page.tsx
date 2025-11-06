@@ -2,23 +2,116 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
+import { getUserStudySessions, getUserQuizResults } from '@/lib/firestore';
 import Sidebar from '@/components/Sidebar';
 import Link from 'next/link';
 
 export default function DashboardPage() {
-  const [recentTopics] = useState([
-    { id: 1, title: 'Binary Trees', date: '2024-01-15', score: 85 },
-    { id: 2, title: 'Machine Learning', date: '2024-01-14', score: 92 },
-    { id: 3, title: 'React Hooks', date: '2024-01-13', score: 78 },
-  ]);
+  const [recentTopics, setRecentTopics] = useState<any[]>([]);
+  const [learningStreak, setLearningStreak] = useState(0);
+  const [dataLoading, setDataLoading] = useState(true);
   const router = useRouter();
   const { user, userProfile, loading } = useAuth();
+
+  // Calculate learning streak from study sessions
+  const calculateStreak = (sessions: any[]) => {
+    if (sessions.length === 0) return 0;
+    
+    // Get unique dates when user studied (remove duplicates)
+    const studyDates = [...new Set(
+      sessions.map(session => {
+        const date = new Date(session.createdAt.seconds * 1000);
+        return date.toDateString(); // Convert to date string for comparison
+      })
+    )].sort((a, b) => new Date(b).getTime() - new Date(a).getTime()); // Sort newest first
+    
+    let streak = 0;
+    const today = new Date();
+    
+    // Check if user studied today or yesterday (to account for timezone)
+    const todayStr = today.toDateString();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toDateString();
+    
+    // Start counting from today or yesterday
+    let currentDate = new Date();
+    if (studyDates[0] === todayStr) {
+      // User studied today, start from today
+      currentDate = today;
+    } else if (studyDates[0] === yesterdayStr) {
+      // User studied yesterday, start from yesterday
+      currentDate = yesterday;
+    } else {
+      // User hasn't studied recently, no streak
+      return 0;
+    }
+    
+    // Count consecutive days
+    for (const studyDate of studyDates) {
+      const studyDateObj = new Date(studyDate);
+      const currentDateStr = currentDate.toDateString();
+      
+      if (studyDate === currentDateStr) {
+        streak++;
+        // Move to previous day
+        currentDate.setDate(currentDate.getDate() - 1);
+      } else {
+        // Gap found, break the streak
+        break;
+      }
+    }
+    
+    return streak;
+  };
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
     }
   }, [user, loading, router]);
+
+  useEffect(() => {
+    const fetchRecentTopics = async () => {
+      if (user) {
+        try {
+          console.log('📊 Fetching recent topics for dashboard:', user.uid);
+          const [sessions, quizResults] = await Promise.all([
+            getUserStudySessions(user.uid),
+            getUserQuizResults(user.uid)
+          ]);
+          
+          // Combine and format recent topics
+          const topics = sessions.slice(0, 3).map(session => {
+            // Find corresponding quiz result for this topic
+            const quizResult = quizResults.find(quiz => quiz.topic === session.topic);
+            const score = quizResult ? Math.round((quizResult.score / quizResult.totalQuestions) * 100) : null;
+            
+            return {
+              id: session.id,
+              title: session.topic,
+              date: new Date(session.createdAt.seconds * 1000).toLocaleDateString(),
+              score: score
+            };
+          });
+          
+          console.log('📚 Recent topics loaded:', topics);
+          setRecentTopics(topics);
+          
+          // Calculate learning streak
+          const streak = calculateStreak(sessions);
+          console.log('🔥 Learning streak calculated:', streak);
+          setLearningStreak(streak);
+        } catch (error) {
+          console.error('❌ Failed to fetch recent topics:', error);
+        } finally {
+          setDataLoading(false);
+        }
+      }
+    };
+
+    fetchRecentTopics();
+  }, [user]);
 
   if (loading) {
     return (
@@ -99,38 +192,84 @@ export default function DashboardPage() {
 
           {/* Recent Activity */}
           <div className="grid lg:grid-cols-2 gap-8">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Topics</h2>
-              <div className="space-y-4">
-                {recentTopics.map((topic) => (
-                  <div key={topic.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <h3 className="font-medium text-gray-900">{topic.title}</h3>
-                      <p className="text-sm text-gray-600">{topic.date}</p>
-                    </div>
-                    <div className="text-right">
-                      <div className={`text-sm font-medium ${topic.score >= 80 ? 'text-green-600' : 'text-yellow-600'}`}>
-                        {topic.score}%
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Recent Topics</h2>
+              {dataLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+                </div>
+              ) : recentTopics.length > 0 ? (
+                <div className="space-y-4">
+                  {recentTopics.map((topic) => (
+                    <div key={topic.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div>
+                        <h3 className="font-medium text-gray-900 dark:text-white">{topic.title}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{topic.date}</p>
                       </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Learning Streak</h2>
-              <div className="text-center">
-                <div className="text-4xl font-bold text-indigo-600 mb-2">7</div>
-                <p className="text-gray-600 mb-4">Days in a row</p>
-                <div className="flex justify-center gap-1">
-                  {[1,2,3,4,5,6,7].map((day) => (
-                    <div key={day} className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                      <span className="text-xs text-indigo-600">✓</span>
+                      <div className="text-right">
+                        {topic.score !== null ? (
+                          <div className={`text-sm font-medium ${
+                            topic.score >= 80 ? 'text-green-600 dark:text-green-400' : 
+                            topic.score >= 60 ? 'text-yellow-600 dark:text-yellow-400' : 
+                            'text-red-600 dark:text-red-400'
+                          }`}>
+                            {topic.score}%
+                          </div>
+                        ) : (
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            No quiz
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <span className="text-4xl mb-4 block">📚</span>
+                  <p>No topics learned yet.</p>
+                  <Link href="/learn" className="text-indigo-600 dark:text-indigo-400 hover:underline mt-2 inline-block">
+                    Start learning now!
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Learning Stats</h2>
+              {dataLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">Total Topics</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">{userProfile?.totalTopics || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">Total Quizzes</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">{userProfile?.totalQuizzes || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">Average Score</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">{userProfile?.averageScore || 0}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                      🔥 Learning Streak
+                    </span>
+                    <span className="font-semibold text-orange-600 dark:text-orange-400">
+                      {learningStreak} {learningStreak === 1 ? 'day' : 'days'}
+                    </span>
+                  </div>
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-600">
+                    <Link href="/progress" className="text-indigo-600 dark:text-indigo-400 hover:underline text-sm">
+                      View detailed progress →
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

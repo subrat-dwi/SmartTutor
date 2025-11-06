@@ -68,7 +68,7 @@ export default function QuizCard({ quiz, topic }: { quiz: any; topic?: string })
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500 border border-gray-300 dark:border-gray-700">
       <div className="flex items-center gap-2 mb-6">
         <span className="text-2xl">📝</span>
         <h3 className="text-xl font-bold text-gray-800">Interactive Quiz</h3>
@@ -79,7 +79,7 @@ export default function QuizCard({ quiz, topic }: { quiz: any; topic?: string })
 
       <div className="space-y-6">
         {questions.map((q: any, index: number) => (
-          <div key={q.id} className="bg-gray-50 rounded-lg p-5 border border-gray-200">
+          <div key={q.id} className="bg-white dark:bg-gray-700 rounded-lg p-5 border border-gray-300 dark:border-gray-600">
             <div className="flex items-start gap-3 mb-4">
               <span className="bg-indigo-100 text-indigo-800 text-sm font-semibold px-2 py-1 rounded-full">
                 Q{index + 1}
@@ -90,7 +90,7 @@ export default function QuizCard({ quiz, topic }: { quiz: any; topic?: string })
             {q.type === 'mcq' && (
               <div className="space-y-2 ml-8">
                 {q.options?.map((opt: string, optIndex: number) => (
-                  <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-white cursor-pointer transition-colors border border-transparent hover:border-indigo-200">
+                  <label key={opt} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors border border-transparent hover:border-indigo-200 dark:hover:border-indigo-400">
                     <input 
                       type="radio" 
                       name={q.id} 
@@ -106,7 +106,7 @@ export default function QuizCard({ quiz, topic }: { quiz: any; topic?: string })
             {q.type === 'short' && (
               <div className="ml-8">
                 <input 
-                  className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-indigo-500 focus:outline-none transition-colors" 
+                  className="w-full p-3 border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-600 text-gray-900 dark:text-white rounded-lg focus:border-indigo-500 focus:outline-none transition-colors" 
                   placeholder="Type your answer here..."
                   onChange={(e) => handleSelect(q.id, e.target.value)}
                 />

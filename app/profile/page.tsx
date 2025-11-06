@@ -38,7 +38,7 @@ export default function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
       <Sidebar />
       
       <div className="flex-1 overflow-auto">
@@ -51,17 +51,17 @@ export default function ProfilePage() {
             </div>
 
             {/* Profile Card */}
-            <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm p-8 border border-gray-300 dark:border-gray-700">
               <div className="flex items-center gap-6 mb-8">
-                <img 
-                  src={user.avatar} 
-                  alt={user.name}
-                  className="w-20 h-20 rounded-full"
-                />
+                <div className="w-20 h-20 rounded-full bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold">
+                  {(userProfile?.name || user?.email || 'U')[0].toUpperCase()}
+                </div>
                 <div>
-                  <h2 className="text-2xl font-semibold text-gray-900">{user.name}</h2>
-                  <p className="text-gray-600">{user.email}</p>
-                  <p className="text-sm text-gray-500 mt-1">Member since January 2024</p>
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{userProfile?.name || 'User'}</h2>
+                  <p className="text-gray-600 dark:text-gray-300">{user?.email}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Member since {userProfile?.createdAt ? new Date(userProfile.createdAt.seconds * 1000).toLocaleDateString() : 'Recently'}
+                  </p>
                 </div>
               </div>
 
@@ -77,7 +77,7 @@ export default function ProfilePage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900">{user.name}</div>
+                    <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-white">{userProfile?.name || 'User'}</div>
                   )}
                 </div>
 
@@ -91,7 +91,7 @@ export default function ProfilePage() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
                   ) : (
-                    <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-900">{user.email}</div>
+                    <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-white">{user?.email}</div>
                   )}
                 </div>
 
@@ -124,24 +124,24 @@ export default function ProfilePage() {
             </div>
 
             {/* Stats Card */}
-            <div className="bg-white rounded-xl shadow-sm p-8 border border-gray-200 mt-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">Learning Statistics</h3>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl shadow-sm p-8 border border-gray-300 dark:border-gray-700 mt-6">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Learning Statistics</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 mb-2">12</div>
-                  <div className="text-sm text-gray-600">Topics Learned</div>
+                  <div className="text-3xl font-bold text-blue-600 mb-2">{userProfile?.totalTopics || 0}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Topics Learned</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600 mb-2">8</div>
-                  <div className="text-sm text-gray-600">Quizzes Taken</div>
+                  <div className="text-3xl font-bold text-green-600 mb-2">{userProfile?.totalQuizzes || 0}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Quizzes Taken</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600 mb-2">85%</div>
-                  <div className="text-sm text-gray-600">Average Score</div>
+                  <div className="text-3xl font-bold text-purple-600 mb-2">{userProfile?.averageScore || 0}%</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Average Score</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-yellow-600 mb-2">7</div>
-                  <div className="text-sm text-gray-600">Day Streak</div>
+                  <div className="text-3xl font-bold text-yellow-600 mb-2">-</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Day Streak</div>
                 </div>
               </div>
             </div>
