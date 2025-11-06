@@ -155,16 +155,18 @@ Write specific information about ${topic} in bullet points.`;
     // Create structured fallback from AI response
     const sections: string[] = fallbackResponse.split(/Section \d+:/i).slice(1);
     
-    const fallbackData = {
-      sections: sections.slice(0, 5).map((section: string, index: number) => ({
+    const mappedSections = sections.slice(0, 5).map((section: string, index: number) => {
+      const titles = [
+        `Introduction to ${topic}`,
+        `Key Components of ${topic}`,
+        `How ${topic} Works`,
+        `Applications of ${topic}`,
+        `Future of ${topic}`
+      ];
+      
+      return {
         id: `section${index + 1}`,
-        title: [
-          `Introduction to ${topic}`,
-          `Key Components of ${topic}`,
-          `How ${topic} Works`,
-          `Applications of ${topic}`,
-          `Future of ${topic}`
-        ][index],
+        title: titles[index],
         content: formatToPoints(section.trim()) || `• ${topic} involves multiple important concepts and principles\n\n• Understanding these aspects is essential for practical application\n\n• This knowledge forms the foundation for advanced topics`,
         quiz: {
           questions: [
@@ -183,7 +185,11 @@ Write specific information about ${topic} in bullet points.`;
             }
           ]
         }
-      }))
+      };
+    });
+    
+    const fallbackData = {
+      sections: mappedSections
     };
     
     return NextResponse.json(fallbackData);
