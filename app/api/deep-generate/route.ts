@@ -8,7 +8,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing topic' }, { status: 400 });
     }
 
-    const prompt = `Create a detailed learning module about "${topic}". Write specific, factual content about ${topic}.
+    const prompt = `Create a detailed learning module about "${topic}". Write content in clear point-wise format.
 
 Return this JSON format:
 {
@@ -16,21 +16,14 @@ Return this JSON format:
     {
       "id": "section1",
       "title": "Introduction to ${topic}",
-      "content": "Write 200+ words explaining what ${topic} is, its definition, history, and importance. Be specific.",
+      "content": "## What is ${topic}?\n\n• Definition and basic concept\n• Key characteristics\n• Historical background\n• Why it matters\n\n## Core Principles\n\n• Fundamental principle 1\n• Fundamental principle 2\n• How these principles work together",
       "quiz": {
         "questions": [
           {
             "id": "q1",
             "question": "What is ${topic}?",
             "type": "short",
-            "answer": "Specific answer about ${topic}"
-          },
-          {
-            "id": "q2",
-            "question": "Why is ${topic} important?",
-            "type": "mcq",
-            "options": ["Option A", "Option B", "Option C", "Option D"],
-            "answer": "Option A"
+            "answer": "Specific answer"
           }
         ]
       }
@@ -45,22 +38,47 @@ Create exactly 5 sections:
 4. Applications of ${topic}
 5. Future of ${topic}
 
-Each section: 200+ words about ${topic} specifically, 2 questions. Return only JSON.`;
+Format each section with:
+- Clear headings (##)
+- Bullet points (•) for key information
+- Organized subsections
+- 200+ words total per section
+- 2 quiz questions each
+
+Return only JSON.`;
 
     const response = await generateFromPrompt(prompt, 0.3);
     
-    // Clean text function to remove asterisks and markdown
-    function cleanText(text: string): string {
+    // Convert text to point-wise format
+    function formatToPoints(text: string): string {
       if (!text) return text;
-      return text
-        .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove **bold**
-        .replace(/\*(.*?)\*/g, '$1')     // Remove *italic*
-        .replace(/`(.*?)`/g, '$1')      // Remove `code`
-        .replace(/#{1,6}\s*/g, '')      // Remove # headers
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove [links](url)
-        .replace(/^\s*[-*+]\s+/gm, '')  // Remove bullet points
-        .replace(/^\s*\d+\.\s+/gm, '')  // Remove numbered lists
-        .trim();
+      
+      // Clean all markdown formatting
+      let cleaned = text
+        .replace(/\*{1,3}(.*?)\*{1,3}/g, '$1')  // Remove all asterisks (*, **, ***)
+        .replace(/_{1,3}(.*?)_{1,3}/g, '$1')    // Remove underscores
+        .replace(/`{1,3}(.*?)`{1,3}/g, '$1')    // Remove backticks
+        .replace(/#{1,6}\s*/g, '')              // Remove headers
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
+        .replace(/\*/g, '')                     // Remove any remaining asterisks
+        .replace(/_/g, '')                      // Remove any remaining underscores
+      
+      // Split into sentences and convert to bullet points
+      const sentences = cleaned
+        .split(/[.!?]+/)
+        .map(s => s.trim())
+        .filter(s => s.length > 10); // Filter out very short fragments
+      
+      // Group sentences into logical points (2-3 sentences per point)
+      const points = [];
+      for (let i = 0; i < sentences.length; i += 2) {
+        const point = sentences.slice(i, i + 2).join('. ');
+        if (point.trim()) {
+          points.push('• ' + point.trim() + (point.endsWith('.') ? '' : '.'));
+        }
+      }
+      
+      return points.join('\n\n');
     }
     
     // Safe parsing helper
@@ -93,25 +111,44 @@ Each section: 200+ words about ${topic} specifically, 2 questions. Return only J
     const parsed = tryParseModelJson(response);
     
     if (parsed && parsed.sections && parsed.sections.length > 0) {
-      // Clean content in parsed sections
+      // Format content to points in parsed sections
       parsed.sections = parsed.sections.map((section: any) => ({
         ...section,
-        content: cleanText(section.content),
-        title: cleanText(section.title)
+        content: formatToPoints(section.content),
+        title: section.title.replace(/\*{1,3}(.*?)\*{1,3}/g, '$1').replace(/\*/g, '').replace(/_/g, '')
       }));
       return NextResponse.json(parsed);
     }
     
     // Generate AI content for fallback instead of hardcoded
-    const fallbackPrompt = `Explain "${topic}" in 5 detailed sections. Write actual content about ${topic}, not generic text.
+    const fallbackPrompt = `Explain "${topic}" in 5 detailed sections using point-wise format.
 
-Section 1: What is ${topic}? (200 words)
-Section 2: Key parts of ${topic} (200 words)  
-Section 3: How ${topic} works (200 words)
-Section 4: Uses of ${topic} (200 words)
-Section 5: Future of ${topic} (200 words)
+Section 1: What is ${topic}?
+• Definition
+• Key features
+• Importance
 
-Write specific information about ${topic}.`;
+Section 2: Key components of ${topic}
+• Main elements
+• How they work
+• Relationships
+
+Section 3: How ${topic} works
+• Process steps
+• Methods
+• Techniques
+
+Section 4: Applications of ${topic}
+• Real-world uses
+• Examples
+• Benefits
+
+Section 5: Future of ${topic}
+• Trends
+• Innovations
+• Challenges
+
+Write specific information about ${topic} in bullet points.`;
 
     const fallbackResponse = await generateFromPrompt(fallbackPrompt, 0.5);
     
@@ -128,7 +165,7 @@ Write specific information about ${topic}.`;
           `Applications of ${topic}`,
           `Future of ${topic}`
         ][index],
-        content: cleanText(section.trim()) || `This section covers important aspects of ${topic}. ${topic} involves multiple concepts and applications that are essential to understand.`,
+        content: formatToPoints(section.trim()) || `• ${topic} involves multiple important concepts and principles\n\n• Understanding these aspects is essential for practical application\n\n• This knowledge forms the foundation for advanced topics`,
         quiz: {
           questions: [
             {
