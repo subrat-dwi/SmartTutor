@@ -190,7 +190,13 @@ Write specific information about ${topic} in bullet points.`;
   } catch (err: any) {
     console.error('API /deep-generate error:', err);
     
-    const { topic } = await req.json();
+    let topic = 'Unknown Topic';
+    try {
+      const body = await req.json();
+      topic = body.topic || 'Unknown Topic';
+    } catch (parseErr) {
+      console.error('Failed to parse request body in error handler');
+    }
     const errorFallback = {
       sections: [
         {
