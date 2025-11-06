@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import { getUserQuizResults } from '@/lib/firestore';
 import ThemeToggle from './ThemeToggle';
-import { FaBeer, FaBook, FaChartLine, FaHome, FaQuestion, FaUser } from 'react-icons/fa'
+import { FaBeer, FaBook, FaChartLine, FaHome, FaLightbulb, FaQuestion, FaUser } from 'react-icons/fa'
 import { FaBrain } from 'react-icons/fa6';
 
 export default function Sidebar() {
@@ -38,7 +38,7 @@ export default function Sidebar() {
     { icon: <FaHome />, label: 'Dashboard', href: '/dashboard' },
     { icon: <FaBook />, label: 'Quick Learn', href: '/learn' },
     { icon: <FaBrain />, label: 'Deep Learn', href: '/deep-learn' },
-    { icon: <FaQuestion/>, label: 'Quiz', href: '/quiz' },
+    { icon: <FaLightbulb/>, label: 'Quiz', href: '/quiz' },
     { icon: <FaChartLine/>, label: 'Progress', href: '/progress' },
     { icon: <FaUser/>, label: 'Profile', href: '/profile' },
   ];
