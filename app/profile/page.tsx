@@ -1,36 +1,39 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
 import Sidebar from '@/components/Sidebar';
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '' });
   const router = useRouter();
+  const { user, userProfile, loading } = useAuth();
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
+    if (!loading && !user) {
       router.push('/login');
-      return;
     }
-    const parsedUser = JSON.parse(userData);
-    setUser(parsedUser);
-    setFormData({ name: parsedUser.name, email: parsedUser.email });
-  }, [router]);
+  }, [user, loading, router]);
+
+  useEffect(() => {
+    if (userProfile) {
+      setFormData({ name: userProfile.name, email: userProfile.email });
+    }
+  }, [userProfile]);
 
   const handleSave = () => {
-    const updatedUser = {
-      ...user,
-      name: formData.name,
-      email: formData.email,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=6366f1&color=fff`
-    };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
+    console.log('Profile update:', formData);
     setEditing(false);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
 
   if (!user) return null;
 

@@ -1,11 +1,12 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
 import Sidebar from '@/components/Sidebar';
 
 export default function ProgressPage() {
-  const [user, setUser] = useState<any>(null);
   const router = useRouter();
+  const { user, loading } = useAuth();
 
   const progressData = [
     { subject: 'Computer Science', topics: 8, quizzes: 6, avgScore: 88, progress: 75 },
@@ -22,13 +23,18 @@ export default function ProgressPage() {
   ];
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
+    if (!loading && !user) {
       router.push('/login');
-      return;
     }
-    setUser(JSON.parse(userData));
-  }, [router]);
+  }, [user, loading, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
 
   if (!user) return null;
 
